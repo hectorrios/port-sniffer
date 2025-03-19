@@ -28,6 +28,14 @@ pub struct Arguments {
     pub end_port: u16,
 }
 
+fn start_port_guard(input: &u16) -> bool {
+    *input > 0
+}
+
+fn end_port_guard(input: &u16) -> bool {
+    *input <= MAX
+}
+
 async fn scan(tx: Sender<u16>, start_port: u16, addr: IpAddr) {
     //attempt to establish a TCP connection to the specified
     //`addr` and `start_port`
