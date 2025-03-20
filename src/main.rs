@@ -9,6 +9,7 @@ const MAX: u16 = 65535;
 const IPFALLBACK: IpAddr = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
 
 #[derive(Debug, Clone, Bpaf)]
+#[bpaf(options)]
 pub struct Arguments {
     #[bpaf(long, short, argument("Address"), fallback(IPFALLBACK))]
     pub address: IpAddr,
@@ -49,6 +50,24 @@ async fn scan(tx: Sender<u16>, start_port: u16, addr: IpAddr) {
     }
 }
 
-fn main() {
-    println!("Hello, world!");
+#[tokio::main]
+async fn main() {
+    //collect the arguments
+    let opts = arguments().run();
+    let (tx, rx) = channel();
+    for i in opts.start_port..opts.end_port {
+        let tx = tx.clone();
+        task::spawn(async move { scan(tx, i, opts.address).await });
+    }
+    drop(tx);
+    let mut out = vec![];
+    for p in rx {
+        out.push(p);
+    }
+
+    println!("");
+    out.sort();
+    for v in out {
+        println!("{} is open", v);
+    }
 }
